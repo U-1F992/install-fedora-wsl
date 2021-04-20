@@ -42,6 +42,9 @@ function Install-Fedora([string]$ver,[string]$rc,[string]$arch) {
     Add-User $dist_name
     Set-DefaultUser $dist_name
 
+    # ショートカットを作成
+    Save-Shortcut $ver $rc
+
     # 後片付け
     Remove-Item $archive_name,$layer_path -Force
     Pop-Location
@@ -103,6 +106,23 @@ function Set-DefaultUser([string]$dist_name) {
         }
     }
     Set-ItemProperty -Path $reg_path -Name 'DefaultUid' -Value 1000
+}
+function Save-Shortcut($ver,$rc) {
+    $lnk_path="$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Fedora $ver.lnk"
+    $ico_path="$env:USERPROFILE\fedora_logo.ico"
+
+    if (Test-Path $lnk_path) {
+        Remove-Item $lnk_path -Force
+    }
+    $wsh=New-Object -ComObject WScript.Shell
+    $lnk=$wsh.CreateShortcut($lnk_path)
+    $lnk.TargetPath = "$env:SystemRoot\System32\wsl.exe"
+    $lnk.Arguments = "-d Fedora-$ver-$rc"
+    
+    if (Test-Path $ico_path) {
+        $lnk.IconLocation = $ico_path
+    }
+    $lnk.Save()
 }
 
 Install-Fedora $ver $rc $arch
