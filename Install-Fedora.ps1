@@ -8,14 +8,19 @@ Set-Variable -Name arch -Value 'x86_64' -Option Constant
 
 function Install-Fedora([string]$ver,[string]$rc,[string]$arch) {
     
-    [string]$dist_name="Fedora-$ver-$rc"
+    [string]$dist_name="Fedora-$ver"
     [string]$install_path="$env:LOCALAPPDATA\wsl\Fedora\$ver-$rc"
 
     [string]$image_url="https://nrt.edge.kernel.org/fedora-buffet/fedora/linux/releases/$ver/Container/$arch/images/Fedora-Container-Base-$ver-$rc.$arch.tar.xz"
     [string]$archive_name=(Split-Path $image_url -Leaf)
-    [string]$layer_path=''
-    
+    [string]$lnk_path="$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Fedora $ver.lnk"
+
     Push-Location $env:TEMP
+
+    if (Test-Path $install_path) {
+        Remove-Installation $dist_name $install_path $lnk_path
+        Write-Host
+    }
 
     # コンテナイメージをダウンロード
     try {
@@ -28,25 +33,28 @@ function Install-Fedora([string]$ver,[string]$rc,[string]$arch) {
         exit
     }
 
-    # layer.tarを取得
-    Get-Layer([ref]$archive_name)([ref]$layer_path)
-
     # rootfsをインポート
-    if (Test-Path $install_path) {
-        Remove-Installation $dist_name $install_path
-    }
-    Install-Distribution $dist_name $install_path $layer_path
+    Install-Distribution $dist_name $install_path $archive_name
 
     # ユーザーを追加
     Write-Host
     Add-User $dist_name
+    Write-Host
+
+    # 追加インストール
+    if ((Read-Host 'Install additional packages [y/N]') -eq 'y') {
+        wsl -d $dist_name dnf groupinstall -y Core > $null 2>&1
+        wsl -d $dist_name dnf install -y wget gcc g++ > $null 2>&1
+    }
+
+    # ユーザーをデフォルトに設定
     Set-DefaultUser $dist_name
 
     # ショートカットを作成
-    Save-Shortcut $ver $rc
+    if ((Read-Host 'Add a start menu shortcut [y/N]') -eq 'y') {
+        Add-Shortcut $lnk_path $dist_name
+    }
 
-    # 後片付け
-    Remove-Item $archive_name,$layer_path -Force
     Pop-Location
 
     Wait-Input
@@ -55,6 +63,34 @@ function Wait-Input {
     Write-Host
     Write-Host -NoNewLine 'Press any key to continue...'
     $null=$Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+}
+function Remove-Installation([string]$dist_name,[string]$install_path,[string]$lnk_path) {
+    Write-Host -NoNewline 'Removing the previous installation.'
+    wsl --unregister $dist_name > $null 2>&1
+    Write-Host -NoNewline '.'
+    Remove-Item -Recurse $install_path -Force > $null 2>&1
+    Write-Host '.'
+
+    if (Test-Path $lnk_path) {
+        Remove-Item $lnk_path -Force
+    }
+}
+function Install-Distribution([string]$dist_name,[string]$install_path,[string]$archive_name) {
+    
+    # layer.tarを取得
+    [string]$layer_path=''
+    Get-Layer([ref]$archive_name)([ref]$layer_path)
+
+    Write-Host -NoNewline 'Installing'
+    New-Item $install_path -ItemType Directory > $null 2>&1
+    Write-Host -NoNewline '.'
+    wsl --import $dist_name $install_path $layer_path > $null 2>&1
+    Write-Host -NoNewline '.'
+    wsl -d $dist_name dnf install -y passwd cracklib-dicts > $null 2>&1
+    Write-Host '.'
+
+    # 後片付け
+    Remove-Item $archive_name,$layer_path -Force
 }
 function Get-Layer([ref]$archive_name_ref,[ref]$layer_path_ref) {
     [string]$archive_name=$archive_name_ref.Value
@@ -71,22 +107,6 @@ function Get-Layer([ref]$archive_name_ref,[ref]$layer_path_ref) {
 
     $archive_name_ref.Value=$archive_name
     $layer_path_ref.Value=$layer_path
-}
-function Remove-Installation([string]$dist_name,[string]$install_path) {
-    Write-Host -NoNewline 'Removing the previous installation.'
-    wsl --unregister $dist_name > $null 2>&1
-    Write-Host -NoNewline '.'
-    Remove-Item -Recurse $install_path -Force > $null 2>&1
-    Write-Host '.'
-}
-function Install-Distribution([string]$dist_name,[string]$install_path,[string]$layer_path) {
-    Write-Host -NoNewline 'Installing'
-    New-Item $install_path -ItemType Directory > $null 2>&1
-    Write-Host -NoNewline '.'
-    wsl --import $dist_name $install_path $layer_path > $null 2>&1
-    Write-Host -NoNewline '.'
-    wsl -d $dist_name dnf install -y passwd cracklib-dicts > $null 2>&1
-    Write-Host '.'
 }
 function Add-User([string]$dist_name) {
     [string]$username=Read-Host 'Enter new UNIX username'
@@ -107,21 +127,12 @@ function Set-DefaultUser([string]$dist_name) {
     }
     Set-ItemProperty -Path $reg_path -Name 'DefaultUid' -Value 1000
 }
-function Save-Shortcut([string]$ver,[string]$rc) {
-    $lnk_path="$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Fedora $ver.lnk"
-    $ico_path="$env:USERPROFILE\fedora_logo.ico"
-
-    if (Test-Path $lnk_path) {
-        Remove-Item $lnk_path -Force
-    }
-    $wsh=New-Object -ComObject WScript.Shell
-    $lnk=$wsh.CreateShortcut($lnk_path)
-    $lnk.TargetPath = "$env:SystemRoot\System32\wsl.exe"
-    $lnk.Arguments = "-d Fedora-$ver-$rc"
+function Add-Shortcut([string]$lnk_path,[string]$dist_name) {
     
-    if (Test-Path $ico_path) {
-        $lnk.IconLocation = $ico_path
-    }
+    $lnk=(New-Object -ComObject WScript.Shell).CreateShortcut($lnk_path)
+    $lnk.TargetPath = "$env:SystemRoot\System32\wsl.exe"
+    $lnk.Arguments = "-d $dist_name"
+    
     $lnk.Save()
 }
 
