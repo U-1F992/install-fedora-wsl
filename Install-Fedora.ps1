@@ -90,7 +90,7 @@ function Install-Distribution([string]$dist_name,[string]$install_path,[string]$
     Write-Host '.'
 
     # 後片付け
-    Remove-Item $archive_name,$layer_path -Force
+    Remove-Item $archive_name,(Split-Path $layer_path -Parent) -Recurse -Force
 }
 function Get-Layer([ref]$archive_name_ref,[ref]$layer_path_ref) {
     [string]$archive_name=$archive_name_ref.Value
