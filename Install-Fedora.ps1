@@ -107,7 +107,7 @@ function Set-DefaultUser([string]$dist_name) {
     }
     Set-ItemProperty -Path $reg_path -Name 'DefaultUid' -Value 1000
 }
-function Save-Shortcut($ver,$rc) {
+function Save-Shortcut([string]$ver,[string]$rc) {
     $lnk_path="$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Fedora $ver.lnk"
     $ico_path="$env:USERPROFILE\fedora_logo.ico"
 
