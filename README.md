@@ -26,4 +26,4 @@ Install Fedora for WSL
   - g++ (ditto)
 
 ## References
-- https://roy-n-roy.github.io/Windows/WSL%EF%BC%86%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A/centos/
+- [WSLでCentOS/Fedoraを利用する](https://roy-n-roy.github.io/Windows/WSL%EF%BC%86%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A/centos/)
