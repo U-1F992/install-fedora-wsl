@@ -47,6 +47,11 @@ function Install-Fedora([string]$ver,[string]$rc,[string]$arch) {
         wsl -d $dist_name dnf install -y wget gcc g++ > $null 2>&1
     }
 
+    # 
+    if ((Read-Host "Set Fedora $ver as the default distribution[y/N]") -eq 'y') {
+        wsl --setdefault $dist_name > $null 2>&1
+    }
+
     # ユーザーをデフォルトに設定
     Set-DefaultUser $dist_name
 
