@@ -1,7 +1,4 @@
-﻿### WSLにFedoraをインストールするスクリプト
-### 参考: https://roy-n-roy.github.io/Windows/WSL%EF%BC%86%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A/centos/
-
-### TODO: バージョンとアーキテクチャを設定
+﻿### TODO: バージョンとアーキテクチャを設定
 Set-Variable -Name ver -Value '33' -Option Constant
 Set-Variable -Name rc -Value '1.2' -Option Constant
 Set-Variable -Name arch -Value 'x86_64' -Option Constant
