@@ -1,4 +1,4 @@
-### WSLにFedoraをインストールするスクリプト
+﻿### WSLにFedoraをインストールするスクリプト
 ### 参考: https://roy-n-roy.github.io/Windows/WSL%EF%BC%86%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A/centos/
 
 ### TODO: バージョンとアーキテクチャを設定
