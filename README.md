@@ -19,7 +19,7 @@ Install Fedora for WSL
 
 ## Notes
 - For now we need [XZ Utils](https://tukaani.org/xz/) since `tar` (Powershell) seems not to support tar.xz extraction.
-- If you apply additional packages, the script install following packages.
+- If you apply additional packages, the script install followings.
   - Core [groupinstall]
   - wget (Dependency of Visual Studio Code Server)
   - gcc (for some personal reasons)
