@@ -40,6 +40,8 @@ function Install-Fedora([string]$ver,[string]$rc,[string]$arch) {
 
     # 追加インストール
     if ((Read-Host 'Install additional packages [y/N]') -eq 'y') {
+        wsl -d $dist_name dnf install -y man-db man-pages > $null 2>&1
+        wsl -d $dist_name echo -e "[main]\ngpgcheck=1\ninstallonly_limit=3\nclean_requirements_on_remove=True\nbest=False\nskip_if_unavailable=True\n# tsflags=nodocs" > /etc/dnf/dnf.conf
         wsl -d $dist_name dnf groupinstall -y Core > $null 2>&1
         wsl -d $dist_name dnf install -y wget gcc g++ > $null 2>&1
     }
