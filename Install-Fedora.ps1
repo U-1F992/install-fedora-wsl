@@ -1,5 +1,5 @@
 ﻿### TODO: バージョンとアーキテクチャを設定
-Set-Variable -Name ver -Value '33' -Option Constant
+Set-Variable -Name ver -Value '34' -Option Constant
 Set-Variable -Name rc -Value '1.2' -Option Constant
 Set-Variable -Name arch -Value 'x86_64' -Option Constant
 
